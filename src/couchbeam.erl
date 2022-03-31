@@ -525,8 +525,8 @@ save_doc(Db, Doc, Options) ->
 
 -spec save_doc(Db::db(), doc(), mp_attachments(), Options::list()) ->
     {ok, doc()} | {error, term()}.
-save_doc(#db{server=Server, options=Opts}=Db, {Props}=Doc, Atts, Options) ->
-    DocId = case couchbeam_util:get_value(<<"_id">>, Props) of
+save_doc(#db{server=Server, options=Opts}=Db, Doc, Atts, Options) ->
+    DocId = case couchbeam_util:get_value(<<"_id">>, Doc) of
         undefined ->
             [Id] = get_uuid(Server),
             Id;
@@ -542,7 +542,7 @@ save_doc(#db{server=Server, options=Opts}=Db, {Props}=Doc, Atts, Options) ->
             case couchbeam_httpc:db_request(put, Url, Headers, JsonDoc, Opts,
                                     [200, 201, 202]) of
                 {ok, _, _, Ref} ->
-                    {JsonProp} = couchbeam_httpc:json_body(Ref),
+                    JsonProp = couchbeam_httpc:json_body(Ref),
                     NewRev = couchbeam_util:get_value(<<"rev">>, JsonProp),
                     NewDocId = couchbeam_util:get_value(<<"id">>, JsonProp),
                     Doc1 = couchbeam_doc:set_value(<<"_rev">>, NewRev,

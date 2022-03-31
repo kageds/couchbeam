@@ -50,6 +50,8 @@ pre_encode([{_, _}|_] = PropList) ->
     [ {Key, pre_encode(Value)} || {Key, Value} <- PropList ];
 pre_encode(List) when is_list(List) ->
     [ pre_encode(Term) || Term <- List ];
+pre_encode(Map) when is_map(Map) ->
+    Map;
 pre_encode(true) ->
     true;
 pre_encode(false) ->
@@ -66,10 +68,17 @@ post_decode({[{}]}) ->
 post_decode([{}]) ->
     {[]};
 post_decode([{_Key, _Value} | _Rest] = PropList) ->
-    {[ {Key, post_decode(Value)} || {Key, Value} <- PropList ]};
+    post_decode(PropList, maps:new());
 post_decode(List) when is_list(List) ->
     [ post_decode(Term) || Term <- List];
 post_decode({Term}) ->
     post_decode(Term);
 post_decode(Term) ->
     Term.
+
+post_decode([], Map) when is_map(Map) ->
+    Map;
+post_decode([{Key, Value} | Rest] = PropList, Map) when is_map(Map) ->
+    post_decode(Rest, maps:put(Key, post_decode(Value), Map)).
+
+

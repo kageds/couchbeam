@@ -42,12 +42,8 @@ is_saved(Doc) ->
 %% @doc set a value for a key in jsonobj. If key exists it will be updated.
 set_value(Key, Value, JsonObj) when is_list(Key)->
     set_value(list_to_binary(Key), Value, JsonObj);
-set_value(Key, Value, JsonObj) when is_binary(Key) ->
-    {Props} = JsonObj,
-    case proplists:is_defined(Key, Props) of
-        true -> set_value1(Props, Key, Value, []);
-        false-> {lists:reverse([{Key, Value}|lists:reverse(Props)])}
-    end.
+set_value(Key, Value, Map) when is_binary(Key) ->
+    maps:put(Key, Value, Map).
 
 %% @spec get_value(Key::key_val(), JsonObj::json_obj()) -> term()
 %% @type key_val() = lis() | binary()
@@ -60,6 +56,8 @@ get_value(Key, JsonObj) ->
 %% @spec get_value(Key::lis() | binary(), JsonObj::json_obj(), Default::term()) -> term()
 %% @doc Returns the value of a simple key/value property in json object
 %% function from erlang_couchdb
+get_value(Key, JsonObj, Default) when is_map(JsonObj) ->
+    couchbeam_util:get_value(Key, JsonObj, Default);
 get_value(Key, JsonObj, Default) when is_list(Key) ->
     get_value(list_to_binary(Key), JsonObj, Default);
 get_value(Key, JsonObj, Default) when is_binary(Key) ->

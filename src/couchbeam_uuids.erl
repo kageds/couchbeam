@@ -123,9 +123,9 @@ get_new_uuids(#server{url=ServerUrl, options=Opts}=Server, Backoff, Acc) ->
     case couchbeam_httpc:request(get, Url, [], <<>>, Opts) of
         {ok, 200, _, Ref} ->
             {ok, Body} = hackney:body(Ref),
-            {[{<<"uuids">>, Uuids}]} = couchbeam_ejson:decode(Body),
+            Uuids = couchbeam_ejson:decode(Body),
             ServerUuids = #server_uuids{server_url=ServerUrl,
-                                        uuids=(Acc ++ Uuids)},
+                                        uuids=(Acc ++ maps:get(<<"uuids">>, Uuids))},
             ets:insert(couchbeam_uuids, ServerUuids),
             {ok, ServerUuids};
         {ok, Status, Headers, Ref} ->

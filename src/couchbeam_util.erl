@@ -139,12 +139,13 @@ force_param(Key, Value, Options) ->
     end.
 
 %% @doc emulate proplists:get_value/2,3 but use faster lists:keyfind/3
+
 -spec get_value(Key :: term(), Prop :: [term()]) -> term().
 get_value(Key, Prop) ->
     get_value(Key, Prop, undefined).
 
 -spec get_value(Key :: term(), Prop :: [term()], Default :: term()) -> term().
-get_value(Key, Prop, Default) ->
+get_value(Key, Prop, Default) when is_list(Prop) ->
     case lists:keyfind(Key, 1, Prop) of
 	false ->
 	    case lists:member(Key, Prop) of
@@ -155,7 +156,15 @@ get_value(Key, Prop, Default) ->
 	    V;
 	Other when is_tuple(Other) -> % otherwise return the default
 	    Default
-    end.
+    end;
+get_value([], V, _Default) -> V;
+get_value([K|Ks], Map, Default) when is_map(Map) ->
+    case maps:get(K, Map, Default) of
+        'undefined' -> 'undefined';
+        V -> get_value(Ks, V, Default)
+    end;
+get_value(Key, Map, Default) when is_map(Map) ->
+    maps:get(Key, Map, Default).
 
 %% @doc make view options a list
 parse_options(Options) ->
